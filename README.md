@@ -35,6 +35,8 @@ Time spent: `<Number of hours spent>`
 ### Walkthrough
 
 `walkthrough.gif`
+(walkthrough.gif)
+https://github.com/rajivbammi/dropbox-demo/blob/master/walkthrough.gif
 
 ![Video Walkthrough](...)
 
