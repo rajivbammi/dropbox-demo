@@ -2,11 +2,14 @@ var net = require('net'),
     JsonSocket = require('json-socket');
 var server = net.createServer();
 var mySocket
+let argv = require('yargs').argv
+
 
 var EventEmitter = require('events').EventEmitter;
 var event_emitter = new EventEmitter();
 
 let fs = require('fs')
+let archiver = require('archiver')
 let path = require('path')
 let express = require('express')
 let morgan = require('morgan')
@@ -25,6 +28,7 @@ const NODE_ENV = process.env.NODE_ENV
 const PORT = process.env.PORT || 8000
 const ROOT_DIR = path.resolve(process.cwd())
 const SERVER_PORT = 8001
+const CURRENT_DIR = argv.dir || path.resolve(process.cwd()) + '/server'
 
 let app = express()
 
@@ -69,11 +73,18 @@ chokidar.watch('.', {ignored: /[\/\\]\./})
 app.get('*', setFileMeta, sendHeaders, (req, res) => {
    console.log("*** inside app.get ***")
    //if dir 
-  if(res.body){
-    res.json(res.body)
-    return
-  }
-  fs.createReadStream(req.filePath).pipe(res)
+  if (req.url.charAt(req.url.length - 1) === '/') { // directory
+        let archive = archiver('tar')
+        archive.pipe(res);
+        archive.bulk([
+            { expand: true, cwd: ROOT_DIR, src: ['**'], dest: 'source'}
+        ])
+        archive.finalize()
+        return
+    }
+
+    sendHeaders(req, res)
+    fs.createReadStream(req.filePath).pipe(res)
 })
 
 app.head('*', setFileMeta, sendHeaders, (req, res) => res.end())
